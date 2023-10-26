@@ -1,0 +1,16 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["@builtbysasha/eslint-config/react-ts"],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["react"]
+}
