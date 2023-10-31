@@ -13,15 +13,19 @@ export const ExchangeWidget = () => {
   return (
     <div
       className={
-        "absolute left-1/2 top-1/2 m-auto flex w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 flex-col gap-8 px-4"
+        "absolute left-1/2 top-1/2 m-auto flex w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 flex-col gap-8 px-8"
       }
     >
       <div>
         <h1 className={"mb-4 text-4xl font-light"}>Crypto Exchange</h1>
         <span>Exchange fast and easy</span>
       </div>
-      <div>
-        <button>
+      <div
+        className={
+          "flex flex-col flex-wrap items-end gap-6 md:flex-row md:items-center"
+        }
+      >
+        <button className={"rotate-90 md:rotate-0"}>
           <svg
             fill="none"
             height="24"
