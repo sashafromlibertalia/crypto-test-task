@@ -21,7 +21,12 @@
     "maintained node versions"
   ],
   "dependencies": {
+    "@floating-ui/react": "^0.26.1",
+    "@maskito/core": "^1.8.1",
+    "@maskito/kit": "^1.8.1",
+    "@maskito/react": "^1.8.1",
     "axios": "^1.6.0",
+    "rc-virtual-list": "^3.11.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

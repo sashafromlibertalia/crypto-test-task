@@ -1,20 +1,67 @@
-import { getAvailableCurrencies } from "~/entites/currency";
-import { useEffect } from "react";
-import { Button, Input } from "~/shared";
+import { CurrencyInput, getAvailableCurrencies } from "~/entites/currency";
+import { FC, useEffect, useRef, useState } from "react";
+import { ApiCurrencyResponse, Button, Input } from "~/shared";
 
-export const ExchangeWidget = () => {
+type Props = {
+  className?: string;
+};
+
+export const ExchangeWidget: FC<Props> = ({ className }) => {
+  const allCoins = useRef<ApiCurrencyResponse[]>([]);
+  const [leftData, setLeftData] = useState<ApiCurrencyResponse[]>([]);
+  const [rightData, setRightData] = useState<ApiCurrencyResponse[]>([]);
+
+  const [initialCoin, setInitialCoin] = useState<ApiCurrencyResponse | null>(
+    null,
+  );
+  const [targetCoin, setTargetCoin] = useState<ApiCurrencyResponse | null>(
+    null,
+  );
+
   useEffect(() => {
     (async () => {
+      /**
+       *  В идеале, запрос должен кэшироваться на стороне RTK Query / React Query,
+       *  что позволит избавиться от излишних стейтов
+       */
       const data = await getAvailableCurrencies();
-      console.log(data);
+      allCoins.current = data;
+      setLeftData(data);
+      setRightData(data);
     })();
   }, []);
 
-  return (
-    <div
-      className={
-        "absolute left-1/2 top-1/2 m-auto flex w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 flex-col gap-8 px-8"
+  const handleChange = (
+    coin: ApiCurrencyResponse,
+    target: "initial" | "target",
+  ) => {
+    switch (target) {
+      case "initial": {
+        setRightData(allCoins.current.filter((c) => c.ticker !== coin.ticker));
+        setInitialCoin(coin);
+        break;
       }
+      case "target": {
+        setLeftData(allCoins.current.filter((c) => c.ticker !== coin.ticker));
+        setTargetCoin(coin);
+        break;
+      }
+    }
+  };
+
+  const handleSwap = () => {
+    setRightData(leftData);
+    setLeftData(rightData);
+    setInitialCoin(targetCoin);
+    setTargetCoin(initialCoin);
+  };
+
+  return (
+    <form
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
     >
       <div>
         <h1 className={"mb-4 text-4xl font-light"}>Crypto Exchange</h1>
@@ -25,7 +72,13 @@ export const ExchangeWidget = () => {
           "flex flex-col flex-wrap items-end gap-6 md:flex-row md:items-center"
         }
       >
-        <button className={"rotate-90 md:rotate-0"}>
+        <CurrencyInput
+          className={"w-full flex-1"}
+          data={leftData}
+          defaultCoin={initialCoin ?? null}
+          onChange={(coin) => handleChange(coin, "initial")}
+        />
+        <button className={"rotate-90 md:rotate-0"} onClick={handleSwap}>
           <svg
             fill="none"
             height="24"
@@ -47,11 +100,17 @@ export const ExchangeWidget = () => {
             </defs>
           </svg>
         </button>
+        <CurrencyInput
+          className={"w-full flex-1"}
+          data={rightData}
+          defaultCoin={targetCoin ?? null}
+          onChange={(coin) => handleChange(coin, "target")}
+        />
       </div>
       <div className={"flex flex-wrap items-end gap-4 md:gap-8"}>
         <Input label={"Your Ethereum address"} />
         <Button className={"w-full md:w-auto"}>Exchange</Button>
       </div>
-    </div>
+    </form>
   );
 };
