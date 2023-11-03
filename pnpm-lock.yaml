@@ -8,18 +8,12 @@ dependencies:
   "@floating-ui/react":
     specifier: ^0.26.1
     version: 0.26.1(react-dom@18.2.0)(react@18.2.0)
-  "@maskito/core":
-    specifier: ^1.8.1
-    version: 1.8.1
-  "@maskito/kit":
-    specifier: ^1.8.1
-    version: 1.8.1(@maskito/core@1.8.1)
-  "@maskito/react":
-    specifier: ^1.8.1
-    version: 1.8.1(@maskito/core@1.8.1)(react-dom@18.2.0)(react@18.2.0)
   axios:
     specifier: ^1.6.0
     version: 1.6.0
+  lodash.debounce:
+    specifier: ^4.0.8
+    version: 4.0.8
   rc-virtual-list:
     specifier: ^3.11.2
     version: 3.11.2(react-dom@18.2.0)(react@18.2.0)
@@ -34,6 +28,9 @@ devDependencies:
   "@builtbysasha/eslint-config":
     specifier: ^1.1.1
     version: 1.1.1(typescript@5.2.2)
+  "@types/lodash.debounce":
+    specifier: ^4.0.8
+    version: 4.0.8
   "@types/react":
     specifier: ^18.2.15
     version: 18.2.33
@@ -869,39 +866,6 @@ packages:
       "@jridgewell/sourcemap-codec": 1.4.15
     dev: true
 
-  /@maskito/core@1.8.1:
-    resolution:
-      {
-        integrity: sha512-h9+Z91WASHQ6z6kDP7uIHyMUPxNwA1mOIPsFxdg2MHq1RASFUNKHj66uU5xuR0OJu17qcCCzUu7ixZ43QQ/HYg==,
-      }
-    dev: false
-
-  /@maskito/kit@1.8.1(@maskito/core@1.8.1):
-    resolution:
-      {
-        integrity: sha512-eevH2iyqRjxw8kzt7gmLETrlkPTj4Mq1mbIOOD2VQ+O33ocNFl1a87s02mRQGk6UmSJBmHLT/2EaVfUEswBmWA==,
-      }
-    peerDependencies:
-      "@maskito/core": ^1.8.1
-    dependencies:
-      "@maskito/core": 1.8.1
-    dev: false
-
-  /@maskito/react@1.8.1(@maskito/core@1.8.1)(react-dom@18.2.0)(react@18.2.0):
-    resolution:
-      {
-        integrity: sha512-Zbkpg5QyM9sXfk8wl+JL5W5f89fn2ucn3hGZ+a+6zMgTlMEqeDFXFsrPVmZVxVih22/+lTJQj2zkfh9vdrJaxA==,
-      }
-    peerDependencies:
-      "@maskito/core": ^1.8.1
-      react: ">=16.8"
-      react-dom: ">=16.8"
-    dependencies:
-      "@maskito/core": 1.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
-
   /@nodelib/fs.scandir@2.1.5:
     resolution:
       {
@@ -977,6 +941,22 @@ packages:
     resolution:
       {
         integrity: sha512-U3PUjAudAdJBeC2pgN8uTIKgxrb4nlDF3SF0++EldXQvQBGkpFZMSnwQiIoDU77tv45VgNkl/L4ouD+rEomujw==,
+      }
+    dev: true
+
+  /@types/lodash.debounce@4.0.8:
+    resolution:
+      {
+        integrity: sha512-REumepIJjQFSOaBUoj81U5ZzF9YIhovzE2Lm6ejUbycmwx597k2ivG1cVfPtAj4eVuSbGoZDkJR0sRIahsE6/Q==,
+      }
+    dependencies:
+      "@types/lodash": 4.14.200
+    dev: true
+
+  /@types/lodash@4.14.200:
+    resolution:
+      {
+        integrity: sha512-YI/M/4HRImtNf3pJgbF+W6FrXovqj+T+/HpENLTooK9PnkacBsDpeP3IpHab40CClUfhNmdM2WTNP2sa2dni5Q==,
       }
     dev: true
 
@@ -3102,6 +3082,13 @@ packages:
     dependencies:
       p-locate: 5.0.0
     dev: true
+
+  /lodash.debounce@4.0.8:
+    resolution:
+      {
+        integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==,
+      }
+    dev: false
 
   /lodash.merge@4.6.2:
     resolution:

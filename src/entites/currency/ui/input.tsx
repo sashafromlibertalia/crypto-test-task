@@ -1,8 +1,13 @@
-import { ApiCurrencyResponse, mergeRefs } from "~/shared";
-import { forwardRef, InputHTMLAttributes, useEffect, useState } from "react";
+import { ApiCurrencyResponse } from "~/shared";
+import {
+  ChangeEvent,
+  forwardRef,
+  InputHTMLAttributes,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { twMerge } from "tailwind-merge";
-import { useMaskito } from "@maskito/react";
-import { maskitoNumberOptionsGenerator } from "@maskito/kit";
 import {
   autoUpdate,
   FloatingFocusManager,
@@ -15,37 +20,38 @@ import {
   useRole,
 } from "@floating-ui/react";
 import VirtualizedList from "rc-virtual-list";
+import debounce from "lodash.debounce";
 
 type Props = {
   data: ApiCurrencyResponse[];
   defaultCoin?: ApiCurrencyResponse | null;
-  onChange: (coin: ApiCurrencyResponse) => void;
+  defaultValue?: number;
+  onCoinChange: (coin: ApiCurrencyResponse) => void;
+  onInputChange?: (value: number) => void;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">;
 
 export const CurrencyInput = forwardRef<HTMLInputElement, Props>(
   (props, ref) => {
     const {
       data = [],
+      onInputChange,
       defaultCoin,
       placeholder = "Введите число",
       className,
-      onChange,
+      onCoinChange,
       ...rest
     } = props;
 
+    const [value, setValue] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [selectedTicker, setSelectedTicker] = useState<string | null>(
       defaultCoin?.ticker ?? null,
     );
     const [listData, setListData] = useState<ApiCurrencyResponse[]>(data ?? []);
 
-    const inputRef = useMaskito({
-      options: maskitoNumberOptionsGenerator({
-        decimalSeparator: ".",
-        thousandSeparator: " ",
-        precision: Number.MAX_SAFE_INTEGER,
-      }),
-    });
+    useEffect(() => {
+      setValue(String(props.value ?? ""));
+    }, [props.value]);
 
     const { refs, floatingStyles, context } = useFloating({
       placement: "bottom-start",
@@ -91,8 +97,19 @@ export const CurrencyInput = forwardRef<HTMLInputElement, Props>(
 
     const handleCoinSelection = (index: number) => {
       setSelectedTicker(listData[index].ticker);
-      onChange?.(listData[index]);
+      onCoinChange?.(listData[index]);
       setIsOpen(false);
+    };
+
+    const debouncedUpdate = useCallback(
+      debounce((val) => onInputChange?.(val), 600),
+      [props],
+    );
+
+    const handleDebouncedUpdate = (e: ChangeEvent<HTMLInputElement>) => {
+      const formattedValue = e.target.value.replaceAll(" ", "");
+      setValue(formattedValue);
+      debouncedUpdate(+formattedValue);
     };
 
     return (
@@ -100,23 +117,26 @@ export const CurrencyInput = forwardRef<HTMLInputElement, Props>(
         <div
           ref={refs.setReference}
           className={twMerge(
-            "flex items-center gap-1 rounded-sm border border-grey-200 bg-grey-100 md:gap-2",
+            "flex items-center gap-1 rounded-sm border border-grey-200 bg-grey-100 md:gap-3",
             className,
           )}
         >
           <input
             {...rest}
-            placeholder={placeholder}
-            ref={mergeRefs([inputRef, ref])}
-            type={"text"}
+            required
+            placeholder={value.length > 0 ? value : placeholder}
+            ref={ref}
+            type={"number"}
+            value={value}
             className={
               "flex-[0_0_30%] border-none bg-transparent p-0 px-4 py-3 outline-none md:flex-1"
             }
+            onChange={handleDebouncedUpdate}
           />
           <span className={"block h-1/3 w-0.5 rounded-sm bg-grey-200 py-3"} />
           <span
             className={
-              "flex w-full cursor-pointer items-center justify-center gap-4 py-3 pr-2 md:w-auto"
+              "flex w-full cursor-pointer items-center justify-center gap-4 py-3 pr-3 md:w-auto"
             }
             {...getReferenceProps()}
             tabIndex={0}
@@ -142,9 +162,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, Props>(
                 className={"h-fit rounded-lg border border-grey-200 bg-white"}
                 {...getFloatingProps()}
                 ref={refs.setFloating}
-                style={{
-                  ...floatingStyles,
-                }}
+                style={floatingStyles}
               >
                 <input
                   placeholder={"Search"}

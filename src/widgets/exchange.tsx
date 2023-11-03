@@ -1,4 +1,9 @@
-import { CurrencyInput, getAvailableCurrencies } from "~/entites/currency";
+import {
+  CurrencyInput,
+  getAvailableCurrencies,
+  getEstimateExchangeAmount,
+  getMinimalExchangeAmount,
+} from "~/entites/currency";
 import { FC, useEffect, useRef, useState } from "react";
 import { ApiCurrencyResponse, Button, Input } from "~/shared";
 
@@ -6,54 +11,150 @@ type Props = {
   className?: string;
 };
 
+type CoinState = {
+  coin: ApiCurrencyResponse | null;
+  options: ApiCurrencyResponse[];
+  value?: number | string;
+  minimalValue?: number;
+};
+
 export const ExchangeWidget: FC<Props> = ({ className }) => {
   const allCoins = useRef<ApiCurrencyResponse[]>([]);
-  const [leftData, setLeftData] = useState<ApiCurrencyResponse[]>([]);
-  const [rightData, setRightData] = useState<ApiCurrencyResponse[]>([]);
+  const [startCoinMeta, setStartCoinMeta] = useState<CoinState>({
+    coin: null,
+    options: [],
+  });
 
-  const [initialCoin, setInitialCoin] = useState<ApiCurrencyResponse | null>(
-    null,
-  );
-  const [targetCoin, setTargetCoin] = useState<ApiCurrencyResponse | null>(
-    null,
-  );
+  const [targetCoinMeta, setTargetCoinMeta] = useState<CoinState>({
+    coin: null,
+    options: [],
+  });
+
+  const [errorCaption, setErrorCaption] = useState("");
 
   useEffect(() => {
     (async () => {
       /**
-       *  В идеале, запрос должен кэшироваться на стороне RTK Query / React Query,
-       *  что позволит избавиться от излишних стейтов
+       *  В идеале, запрос должен кэшироваться на стороне RTK Query / React Query
        */
       const data = await getAvailableCurrencies();
       allCoins.current = data;
-      setLeftData(data);
-      setRightData(data);
+
+      setStartCoinMeta((prev) => ({
+        ...prev,
+        options: data,
+      }));
+      setTargetCoinMeta((prev) => ({
+        ...prev,
+        options: data,
+      }));
     })();
   }, []);
 
-  const handleChange = (
+  // Актуализация значений при выборе новых валют
+  useEffect(() => {
+    (async () => {
+      if (!startCoinMeta.coin || !targetCoinMeta.coin) return;
+
+      const minimalAmount = await getMinimalExchangeAmount(
+        startCoinMeta.coin.ticker,
+        targetCoinMeta.coin.ticker,
+      );
+
+      if (!minimalAmount) {
+        disablePairs();
+        return;
+      }
+
+      setStartCoinMeta((prev) => ({
+        ...prev,
+        minimalValue: minimalAmount ?? undefined,
+      }));
+    })();
+  }, [startCoinMeta.coin, targetCoinMeta.coin]);
+
+  // Поиск estimated при выборе правой валюты
+  useEffect(() => {
+    if (startCoinMeta.minimalValue && startCoinMeta?.minimalValue > 0)
+      handleInputChange(startCoinMeta.minimalValue);
+  }, [startCoinMeta.minimalValue, targetCoinMeta.coin]);
+
+  const disablePairs = (
+    caption: string = "This pair is disabled now",
+    fallbackValue: CoinState["value"] = "—",
+  ) => {
+    setErrorCaption(caption);
+    setTargetCoinMeta((prev) => ({
+      ...prev,
+      value: fallbackValue,
+    }));
+  };
+
+  const handleInputChange = async (value: number) => {
+    if (!startCoinMeta.coin || !targetCoinMeta.coin) {
+      return;
+    }
+
+    if (startCoinMeta.minimalValue && value < startCoinMeta.minimalValue) {
+      disablePairs("Error");
+      return;
+    }
+
+    const estimatedAmount = await getEstimateExchangeAmount(
+      value,
+      startCoinMeta.coin.ticker,
+      targetCoinMeta.coin.ticker,
+    );
+
+    if (!estimatedAmount) {
+      disablePairs();
+      return;
+    }
+
+    setTargetCoinMeta((prev) => ({
+      ...prev,
+      value: estimatedAmount?.estimatedAmount ?? undefined,
+    }));
+
+    setStartCoinMeta((prev) => ({
+      ...prev,
+      value,
+    }));
+  };
+
+  const handleCoinSelection = async (
     coin: ApiCurrencyResponse,
-    target: "initial" | "target",
+    target: "start" | "target",
   ) => {
     switch (target) {
-      case "initial": {
-        setRightData(allCoins.current.filter((c) => c.ticker !== coin.ticker));
-        setInitialCoin(coin);
+      case "start": {
+        setStartCoinMeta((prev) => ({
+          ...prev,
+          coin,
+        }));
+        setTargetCoinMeta((prev) => ({
+          ...prev,
+          options: allCoins.current.filter((c) => c.ticker !== coin.ticker),
+        }));
         break;
       }
       case "target": {
-        setLeftData(allCoins.current.filter((c) => c.ticker !== coin.ticker));
-        setTargetCoin(coin);
+        setTargetCoinMeta((prev) => ({
+          ...prev,
+          coin,
+        }));
+        setStartCoinMeta((prev) => ({
+          ...prev,
+          options: allCoins.current.filter((c) => c.ticker !== coin.ticker),
+        }));
         break;
       }
     }
   };
 
   const handleSwap = () => {
-    setRightData(leftData);
-    setLeftData(rightData);
-    setInitialCoin(targetCoin);
-    setTargetCoin(initialCoin);
+    setTargetCoinMeta(startCoinMeta);
+    setStartCoinMeta(targetCoinMeta);
   };
 
   return (
@@ -74,10 +175,13 @@ export const ExchangeWidget: FC<Props> = ({ className }) => {
       >
         <CurrencyInput
           className={"w-full flex-1"}
-          data={leftData}
-          defaultCoin={initialCoin ?? null}
-          onChange={(coin) => handleChange(coin, "initial")}
+          data={startCoinMeta.options}
+          defaultCoin={startCoinMeta.coin}
+          value={startCoinMeta.value ?? startCoinMeta.minimalValue}
+          onCoinChange={(coin) => handleCoinSelection(coin, "start")}
+          onInputChange={(value) => handleInputChange(value)}
         />
+
         <button className={"rotate-90 md:rotate-0"} onClick={handleSwap}>
           <svg
             fill="none"
@@ -100,16 +204,24 @@ export const ExchangeWidget: FC<Props> = ({ className }) => {
             </defs>
           </svg>
         </button>
+
         <CurrencyInput
+          readOnly
           className={"w-full flex-1"}
-          data={rightData}
-          defaultCoin={targetCoin ?? null}
-          onChange={(coin) => handleChange(coin, "target")}
+          data={targetCoinMeta.options}
+          defaultCoin={targetCoinMeta.coin}
+          defaultValue={targetCoinMeta.minimalValue}
+          placeholder={"Здесь будет результат"}
+          value={targetCoinMeta.value}
+          onCoinChange={(coin) => handleCoinSelection(coin, "target")}
         />
       </div>
       <div className={"flex flex-wrap items-end gap-4 md:gap-8"}>
         <Input label={"Your Ethereum address"} />
-        <Button className={"w-full md:w-auto"}>Exchange</Button>
+        <Button className={"w-full md:w-auto"} type={"submit"}>
+          Exchange
+        </Button>
+        {errorCaption && <span className={"text-red-500"}>{errorCaption}</span>}
       </div>
     </form>
   );

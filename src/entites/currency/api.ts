@@ -24,12 +24,7 @@ const getMinimalExchangeAmount = async (
 ): Promise<number | null> => {
   try {
     const { data } = await api.get(
-      `min_amount/${initialCurrency}_${targetCurrency}`,
-      {
-        params: {
-          active: "true",
-        },
-      },
+      `min-amount/${initialCurrency}_${targetCurrency}`,
     );
 
     return data?.["minAmount"] ?? null;
@@ -46,12 +41,7 @@ const getEstimateExchangeAmount = async (
 ): Promise<ApiCurrencyExchangeResponse | null> => {
   try {
     const { data } = await api.get(
-      `exchange-amount/fixed-rate/${amount}/${initialCurrency}_${targetCurrency}`,
-      {
-        params: {
-          active: "true",
-        },
-      },
+      `exchange-amount/${amount}/${initialCurrency}_${targetCurrency}`,
     );
 
     return data;

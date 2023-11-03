@@ -11,10 +11,8 @@ type ApiCurrencyResponse = {
 
 type ApiCurrencyExchangeResponse = {
   estimatedAmount: number;
-  networkFee: number;
   transactionSpeedForecast: string;
   warningMessage: string | null;
-  rateId: string;
 };
 
 export type { ApiCurrencyResponse, ApiCurrencyExchangeResponse };

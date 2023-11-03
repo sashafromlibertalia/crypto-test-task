@@ -22,16 +22,15 @@
   ],
   "dependencies": {
     "@floating-ui/react": "^0.26.1",
-    "@maskito/core": "^1.8.1",
-    "@maskito/kit": "^1.8.1",
-    "@maskito/react": "^1.8.1",
     "axios": "^1.6.0",
+    "lodash.debounce": "^4.0.8",
     "rc-virtual-list": "^3.11.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@builtbysasha/eslint-config": "^1.1.1",
+    "@types/lodash.debounce": "^4.0.8",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
