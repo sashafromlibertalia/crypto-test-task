@@ -124,7 +124,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, Props>(
           <input
             {...rest}
             required
-            placeholder={placeholder}
+            placeholder={value === "—" ? value : placeholder}
             ref={ref}
             type={"number"}
             value={value}
