@@ -53,6 +53,8 @@ export const ExchangeWidget: FC<Props> = ({ className }) => {
 
   // Актуализация значений при выборе новых валют
   useEffect(() => {
+    setErrorCaption("");
+
     (async () => {
       if (!startCoinMeta.coin || !targetCoinMeta.coin) return;
 
@@ -93,6 +95,10 @@ export const ExchangeWidget: FC<Props> = ({ className }) => {
   const handleInputChange = async (value: number) => {
     if (!startCoinMeta.coin || !targetCoinMeta.coin) {
       return;
+    }
+
+    if (errorCaption) {
+      setErrorCaption("");
     }
 
     if (startCoinMeta.minimalValue && value < startCoinMeta.minimalValue) {
